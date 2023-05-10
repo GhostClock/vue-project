@@ -1,11 +1,12 @@
 <template>
   <div class="login-container">
+    <!-- el-form组件ElementUI插件里面的组件，经常展示表单元素  model: 收集表单数据 rules:验证表单规则 -->
     <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" auto-complete="on" label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">登录</h3>
       </div>
-
+      <!-- 用户名 -->
       <el-form-item prop="username">
         <span class="svg-container">
           <svg-icon icon-class="user" />
@@ -20,7 +21,7 @@
           auto-complete="on"
         />
       </el-form-item>
-
+      <!-- 密码 -->
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password" />
@@ -40,8 +41,8 @@
           <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
         </span>
       </el-form-item>
-
-      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
+      <!-- 登录按钮 -->
+      <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">登录</el-button>
 
       <div class="tips">
         <span style="margin-right:20px;">username: admin</span>
@@ -58,6 +59,8 @@ import { validUsername } from '@/utils/validate'
 export default {
   name: 'Login',
   data() {
+    // 这里进行表单验证 验证用户名和密码
+    // TODO：后面看
     const validateUsername = (rule, value, callback) => {
       if (!validUsername(value)) {
         callback(new Error('Please enter the correct user name'))
@@ -95,6 +98,7 @@ export default {
     }
   },
   methods: {
+    // 是否显示密码
     showPwd() {
       if (this.passwordType === 'password') {
         this.passwordType = ''
@@ -105,12 +109,19 @@ export default {
         this.$refs.password.focus()
       })
     },
+    // 登录业务: 发请求，带着用户名和密码给服务器 返回成功或者失败
     handleLogin() {
+      // 验证表单元素 用户名和密码 是否符合规则
       this.$refs.loginForm.validate(valid => {
+        // 符合验证规则
         if (valid) {
+          // 按钮会有一个loading的效果
           this.loading = true
+          // 派发action user/login, 带着用户名和密码的载荷
           this.$store.dispatch('user/login', this.loginForm).then(() => {
+            // 登录成功 进行路由跳转
             this.$router.push({ path: this.redirect || '/' })
+            // login效果结束
             this.loading = false
           }).catch(() => {
             this.loading = false
@@ -180,7 +191,8 @@ $light_gray:#eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
+  background: url(~@/assets/loginbg.jpeg);
+  background-size: 100% 100%;
   overflow: hidden;
 
   .login-form {

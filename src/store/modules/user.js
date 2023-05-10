@@ -28,63 +28,59 @@ const mutations = {
 }
 
 const actions = {
-  // user login
-  login({ commit }, userInfo) {
+  // 处理登录的业务
+  async login({ commit }, userInfo) {
+    // 解构出用户名和密码
     const { username, password } = userInfo
-    return new Promise((resolve, reject) => {
-      login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
-        commit('SET_TOKEN', data.token)
-        setToken(data.token)
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
+    const result = await login({ username: username.trim(), password: password })
+    console.log('登录的数据：', result)
+    // 注意：当前登录的请求，使用的mock数据
+    if (result.code === 20000) {
+      const token = result.data.token
+      commit('SET_TOKEN', token)
+      setToken(token)
+      return true
+    }
+    return Promise.reject(new Error('faile'))
   },
 
-  // get user info
-  getInfo({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          return reject('Verification failed, please Login again.')
-        }
-
-        const { name, avatar } = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
-      }).catch(error => {
-        reject(error)
-      })
-    })
+  // 获取用户信息
+  async getInfo({ commit, state }) {
+    const result = await getInfo(state.token)
+    console.log('获取用户信息：', result)
+    if (result.code === 20000) {
+      const { data } = result
+      if (!data) {
+        return Promise.reject(new Error('验证失败，请重试'))
+      }
+      const { name, avatar } = data
+      commit('SET_NAME', name)
+      commit('SET_AVATAR', avatar)
+    }
+    return true
   },
 
-  // user logout
-  logout({ commit, state }) {
-    return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
-        removeToken() // must remove  token  first
-        resetRouter()
-        commit('RESET_STATE')
-        resolve()
-      }).catch(error => {
-        reject(error)
-      })
-    })
-  },
-
-  // remove token
-  resetToken({ commit }) {
-    return new Promise(resolve => {
-      removeToken() // must remove  token  first
+  // 登出
+  async logout({ commit, state }) {
+    const result = await logout(state.token)
+    console.log('登出：', result)
+    if (result.code === 20000) {
+      removeToken()
+      resetRouter()
       commit('RESET_STATE')
-      resolve()
-    })
+      return true
+    }
+    return Promise.reject(new Error('faile'))
+  },
+
+  // 移出token
+  async resetToken({ commit }) {
+    const result = await removeToken()
+    if (result) {
+      commit('RESET_STATE')
+      return true
+    }
+    return Promise.reject(new Error('faile'))
   }
 }
 
