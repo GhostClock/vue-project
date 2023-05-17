@@ -4,7 +4,7 @@ import request from '@/utils/request'
 // 对外暴露的登录的函数
 export function login(data) {
   return request({
-    url: '/admin/acl/index/login ',
+    url: '/admin/acl/index/login',
     method: 'post',
     data
   })
