@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 按钮 -->
-    <el-button type="primary" icon="el-icon-plus" style="margin: 10px 0">添加</el-button>
+    <el-button type="primary" icon="el-icon-plus" style="margin: 10px 0" @click="showDialog">添加</el-button>
     <!-- 表格组件
     data：主要展示的数据 - 数组类型
     border: 边框
@@ -22,7 +22,7 @@
       </el-table-column>
       <el-table-column prop="prop" label="操作" width="width">
         <template slot-scope="{ row, $index }">
-          <el-button type="warning" icon="el-icon-edit" size="mini">修改</el-button>
+          <el-button type="warning" icon="el-icon-edit" size="mini" @click="updateTradeMark">修改</el-button>
           <el-button type="danger" icon="el-icon-delete" size="mini">删除</el-button>
         </template>
       </el-table-column>
@@ -51,9 +51,45 @@
       @current-change="getPageList"
       @size-change="handleSizeChange"
     />
+    <!-- 对话框
+    visible.sync: 控制对话框 显示和隐藏 用的
+    -->
+    <el-dialog
+      title="添加品牌"
+      :visible.sync="dialogVisible"
+    >
+      <!-- 展示表单元素 from -->
+      <el-form style="width: 80%">
+        <el-form-item label="品牌名称" label-width="100px">
+          <el-input auto-complete="off" />
+        </el-form-item>
+        <el-form-item label="品牌LOGO" label-width="100px">
+          <!-- 上传组件
+            :on-success="handleSuccess" 上传成功的回调
+            :before-upload="beforeUpload" 上传成功之前的回调
+           -->
+          <el-upload
+            class="avatar-uploader"
+            action="https://jsonplaceholder.typicode.com/posts/"
+            :show-file-list="false"
+            :on-success="handleSuccess"
+            :before-upload="beforeUpload"
+          >
+            <img v-if="imageUrl" :src="imageUrl" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件,且不超过500kb</div>
+          </el-upload>
+        </el-form-item>
+      </el-form>
+      <div slot="footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
+import file from 'os'
 export default {
   name: "tradeMark",
   data() {
@@ -65,7 +101,11 @@ export default {
       // 总数据条数
       total: 0,
       // 列表展示的数据
-      list: []
+      list: [],
+      // 对话框显示和隐藏
+      dialogVisible: false,
+      // 上传图片使用的属性
+      imageUrl: ''
     }
   },
   // 组件挂载完毕，发起请求
@@ -93,9 +133,59 @@ export default {
     handleSizeChange(limit) {
       this.limit = limit
       this.getPageList()
+    },
+    // 点击添加品牌按钮
+    showDialog() {
+      // 显示对话框
+      this.dialogVisible = true
+    },
+    // 修改某一个品牌
+    updateTradeMark() {
+      this.dialogVisible = true
+    },
+    // 上传成功
+    handleSuccess() {
+      this.imageUrl = URL.createObjectURL(file.raw)
+    },
+    // 上传之前
+    beforeUpload() {
+      const isJPG = file.type === 'image/jpeg'
+      const isLt2M = file.size / 1024 / 1024 < 2
+
+      if (!isJPG) {
+        this.$message.error('上传头像图片只能是 JPG 格式!')
+      }
+      if (!isLt2M) {
+        this.$message.error('上传头像图片大小不能超过 2MB!')
+      }
+      return isJPG && isLt2M
     }
   }
 }
 </script>
-<style lang="less" scoped>
+
+<style>
+ .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
 </style>
